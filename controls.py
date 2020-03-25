@@ -7,6 +7,14 @@ class OptimalControl:
         self.model = model
         self.H = H
 
+        # Box-constraints, state
+        self.X_lb = np.ones(self.model.x.shape[0]) * -np.inf
+        self.X_ub = np.ones(self.model.x.shape[0]) * np.inf
+
+        # Box-constraints, input
+        self.U_lb = np.ones(self.model.u.shape[0]) * -np.inf
+        self.U_ub = np.ones(self.model.u.shape[0]) * np.inf
+
     def get_MPC(self):
         opti = ca.Opti()
 
@@ -29,13 +37,15 @@ class OptimalControl:
         for k in range(self.H):
            opti.subject_to(X[:,k+1] == F_RK4(X[:,k], U[:,k], P))
 
-        # Capacity
-        # TODO: Move this from here
-        opti.subject_to(opti.bounded(0, X[2,:], 0.02))
-        opti.subject_to(opti.bounded(0, U, 0.8))
+
+        #opti.subject_to(opti.bounded(0, X[2,:], 0.02))
+        #opti.subject_to(opti.bounded(0, U, 0.8))
+
+        opti.subject_to(opti.bounded(self.X_lb, X, self.X_ub))
+        opti.subject_to(opti.bounded(self.U_lb, U, self.U_ub))
 
         opti.minimize(ca.sumsqr(U))
 
-        opti.solver('ipopt')
+        opti.solver('ipopt', {'ipopt': {'print_level': 0}})
 
         return opti.to_function("MPC", [X0, P], [U[0]], ["x[k]", "p"], ["u[k]"])
