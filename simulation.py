@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
 
+import time
+
 import models
 import controls
 
 SEIR = models.SEIR()
-opt = controls.OptimalControl(SEIR, H=10)
+opt = controls.OptimalControl(SEIR, H=30)
 
 # CoVID19 properties
 t_incubation = 5.1
@@ -42,8 +44,10 @@ F_RK4 = SEIR.get_rk4_single_step()
 MPC = opt.get_MPC()
 
 # Simulate
+t0 = time.time()
+dual = 0
 for k in range(N_days-1):
-    U_sim[:,k] = MPC(X_sim[:,k], p0)
+    U_sim[:,k], dual = MPC(X_sim[:,k], p0, dual)
 
     # Stochastic disturbance
     #p_noise = 0.1 * (p0 * np.random.randn(len(p0))) + p0
@@ -51,6 +55,10 @@ for k in range(N_days-1):
     #U_sim[:,k] = 0.85 * U_sim[:,k]
     
     X_sim[:,k+1] = F_RK4(X_sim[:,k], U_sim[:,k], p0).toarray().flatten()
+
+t1 = time.time()
+
+print(t1 - t0)
 
 # Results
 sim_result = pd.DataFrame(

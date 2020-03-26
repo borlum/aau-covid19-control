@@ -48,4 +48,4 @@ class OptimalControl:
 
         opti.solver('ipopt', {'ipopt': {'print_level': 0}})
 
-        return opti.to_function("MPC", [X0, P], [U[0]], ["x[k]", "p"], ["u[k]"])
+        return opti.to_function("MPC", [X0, P, opti.x], [U[0], opti.x], ["x[k]", "p", "dual"], ["u[k]", "dual"])
