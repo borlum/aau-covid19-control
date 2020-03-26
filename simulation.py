@@ -45,9 +45,9 @@ MPC = opt.get_MPC()
 
 # Simulate
 t0 = time.time()
-dual = 0
+init = 0
 for k in range(N_days-1):
-    U_sim[:,k], dual = MPC(X_sim[:,k], p0, dual)
+    U_sim[:,k], init = MPC(X_sim[:,k], p0, init)
 
     # Stochastic disturbance
     #p_noise = 0.1 * (p0 * np.random.randn(len(p0))) + p0
